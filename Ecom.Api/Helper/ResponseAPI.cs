@@ -16,6 +16,7 @@
                 400 => "Bad Request",
                 401 => "Un Authorized",
                 500 => "Server Error",
+                404 => "Not Found",
                 _ => null
             };
         }

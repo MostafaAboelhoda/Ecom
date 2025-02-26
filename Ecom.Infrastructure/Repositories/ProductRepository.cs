@@ -42,6 +42,18 @@ namespace Ecom.Infrastructure.Repositories
 
         }
 
+        public async Task<bool> DeleteAsync(Product product)
+        {
+            var photos = await _appDbContext.Photos.Where(a => a.ProductId == product.Id).ToListAsync();
+            foreach (var photo in photos)
+            {
+                await _imageManagementService.DeleteImageAsycn(photo.ImageName);
+            }
+            _appDbContext.Products.Remove(product);
+            await _appDbContext.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> UpdateAsync(UpdateProductDto updateProductDto)
         {
             if (updateProductDto is null)
