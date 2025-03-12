@@ -2,9 +2,12 @@
 using Ecom.Core.Entities.Product;
 using Ecom.Core.Interface;
 using Ecom.Core.Models.Product;
+using Ecom.Core.Services;
 using Ecom.Infrastructure.Data;
 using Ecom.Infrastructure.Repositories.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Linq;
 
 namespace Ecom.Infrastructure.Repositories
 {
@@ -87,5 +90,44 @@ namespace Ecom.Infrastructure.Repositories
             await _appDbContext.SaveChangesAsync();
             return true;
         }
+
+        public async Task<ReturnProductDto> GetAllAsync(ProductParams productParams)
+        {
+            var query = _appDbContext.Products.Include(a => a.Category)
+                .Include(a => a.Photos).AsNoTracking();
+
+            if (!string.IsNullOrEmpty(productParams.Search))
+            {
+                var searchWords = productParams.Search.Split(' ');
+                query = query.Where(m => searchWords.All(word =>
+
+                m.Name.ToLower().Contains(word.ToLower()) ||
+                m.Description.ToLower().Contains(word.ToLower())
+
+                ));
+            }
+
+            if (productParams.CategoryId.HasValue)
+                query = query.Where(m => m.CategoryId == productParams.CategoryId);
+
+            if (!string.IsNullOrEmpty(productParams.Sort))
+            {
+
+                query = productParams.Sort switch
+                {
+                    "PiceAce" => query.OrderBy(a => a.NewPrice),
+                    "PiceDce" => query.OrderByDescending(a => a.NewPrice),
+                    _ => query.OrderBy(a => a.Name)
+                };
+            }
+            ReturnProductDto returnProductDto = new ReturnProductDto();
+            returnProductDto.TotalCount=query.Count();
+
+            query = query.Skip((productParams.PageSize) * (productParams.PageNumber - 1)).Take(productParams.PageSize);
+
+            returnProductDto.Products = _mapper.Map<List<ProductDto>>(query);
+            return returnProductDto;
+        }
+
     }
 }

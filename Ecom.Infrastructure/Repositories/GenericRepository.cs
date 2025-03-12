@@ -18,6 +18,8 @@ namespace Ecom.Infrastructure.Repositories
             await _appDbContext.SaveChangesAsync();
         }
 
+        public async Task<int> CountAsync() => await _appDbContext.Set<T>().CountAsync();
+        
         public async Task DeleteAsync(int id)
         {
             var entity = await _appDbContext.Set<T>().FindAsync(id);

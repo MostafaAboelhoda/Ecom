@@ -3,6 +3,13 @@ using Ecom.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(op =>
+{
+    op.AddPolicy("CORSPolicy", builder =>
+    {
+        builder.AllowAnyHeader().AllowAnyHeader().AllowCredentials().WithOrigins("https://localhost:4200");
+    });
+});
 // Add services to the container.
 builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
@@ -19,6 +26,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors("CORSPolicy");
 app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseStatusCodePagesWithReExecute("/errors/{0}");
